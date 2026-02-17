@@ -1,0 +1,41 @@
+
+
+# =========================
+# BACKEND (Python / FastAPI)
+# =========================
+# virtual environments (Very Important)
+venv/
+env/
+.venv/
+
+# python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# distribution / builds
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# =========================
+# ENVIRONMENT VARIABLES
+# =========================
+# Ignore all .env files in any folder to protect your secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env.env 
+.env 
+.env 
