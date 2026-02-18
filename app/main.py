@@ -18,13 +18,15 @@ app = FastAPI(title=settings.PROJECT_NAME)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://ledger-guard-frontend.vercel.app/"], 
+    allow_origins=[
+        "http://localhost:3000",  
+        "https://ledger-guard-frontend.vercel.app"  
+    ], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# --- 🟢 CORRECT ROUTER REGISTRATION ---
+# ---  CORRECT ROUTER REGISTRATION ---
 
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(user.router, prefix="/user", tags=["User Settings"])
@@ -34,7 +36,7 @@ app.include_router(billing.router, prefix="/billing", tags=["Billing"])
 app.include_router(transactions.router, prefix=settings.API_V1_STR, tags=["Transactions"]) 
 app.include_router(ingest.router, prefix=f"{settings.API_V1_STR}/ingest", tags=["Ingest"])
 
-# 🟢 DASHBOARD (Fixed: Moved under API V1 to match Frontend)
+#  DASHBOARD (Fixed: Moved under API V1 to match Frontend)
 app.include_router(dashboard.router, prefix=f"{settings.API_V1_STR}/dashboard", tags=["Dashboard"])
 
 @app.get("/")
