@@ -2,9 +2,19 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.core.config import settings
 
-# Create the engine
-# pool_pre_ping=True helps handle dropped connections (common in cloud DBs)
-engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
+# 1. Determine if we are using SQLite or Postgres
+connect_args = {}
+
+# SQLite specific argument (Render/Postgres will crash if this is present)
+if "sqlite" in settings.DATABASE_URL:
+    connect_args = {"check_same_thread": False}
+
+# 2. Create the engine with the correct arguments
+engine = create_engine(
+    settings.DATABASE_URL, 
+    pool_pre_ping=True,
+    connect_args=connect_args  # Only applies if using SQLite
+)
 
 # Create a Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
