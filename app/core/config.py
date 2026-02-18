@@ -5,14 +5,14 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Ledger Guard"
     API_V1_STR: str = "/api/v1"
     
-    # 🟢 AUTH KEY (Keep this hardcoded)
+    # AUTH KEY (Keep this hardcoded)
     SECRET_KEY: str = "super-secret-fixed-key-1234567890"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8 
     
     DATABASE_URL: str = "postgresql://neondb_owner:npg_v4ciTpHNJh1f@ep-green-wave-ailkvwx6-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
     
-    # 🟢 PAYSTACK KEY (Paste your sk_test_... key here directly)
+    #  PAYSTACK KEY (Paste your sk_test_... key here directly)
     # Go to Paystack Dashboard -> Settings -> API Keys & Webhooks to find it.
     PAYSTACK_SECRET_KEY: str = "sk_test_53ec15c9140b353e0e9acf5bc1e7876b91141aac"
     
@@ -35,7 +35,7 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# 🟢 DEBUG PRINT: Verify keys on startup
+#  DEBUG PRINT: Verify keys on startup
 print(f"\n{'='*40}")
 print(f"🔑 AUTH KEY:     {settings.SECRET_KEY}")
 print(f"💳 PAYSTACK KEY: {settings.PAYSTACK_SECRET_KEY}")
