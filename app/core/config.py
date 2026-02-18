@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8 
     
-    DATABASE_URL: str = "sqlite:///./ledger_guard.db"
+    DATABASE_URL: str = "postgresql://neondb_owner:npg_v4ciTpHNJh1f@ep-green-wave-ailkvwx6-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
     
     # 🟢 PAYSTACK KEY (Paste your sk_test_... key here directly)
     # Go to Paystack Dashboard -> Settings -> API Keys & Webhooks to find it.
