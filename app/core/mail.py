@@ -10,21 +10,26 @@ load_dotenv()
 # Setup Logging
 logger = logging.getLogger("uvicorn")
 
-# 🟢 1. ROBUST CONFIGURATION
+#  1. ROBUST CONFIGURATION
 # We remove defaults for username/password to ensure we fail loudly if .env is missing.
 # This prevents the app from trying to connect with "user"/"password" and timing out.
-# 🟢 UPDATED CONFIG FOR PORT 465 (SSL)
+#  UPDATED CONFIG FOR PORT 587 (SSL)
+
 conf = ConnectionConfig(
     MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
     MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
     MAIL_FROM=os.getenv("MAIL_FROM", "rozthegrey@gmail.com"),
-    MAIL_PORT=465,              # 🟢 Must match .env
+    # CHANGE: Set default to 587, but allow .env to override it
+    MAIL_PORT=int(os.getenv("MAIL_PORT", 587)), 
     MAIL_SERVER="smtp.gmail.com",
-    MAIL_STARTTLS=False,        # 🟢 Disable STARTTLS for Port 465
-    MAIL_SSL_TLS=True,          # 🟢 Enable Implicit SSL for Port 465
+    
+    # CHANGE: Enable STARTTLS (Required for Port 587)
+    MAIL_STARTTLS=True,
+    # CHANGE: Disable SSL (Required for Port 587)
+    MAIL_SSL_TLS=False,
+    
     USE_CREDENTIALS=True,
-    VALIDATE_CERTS=True,
-    TIMEOUT=30                  # 🟢 Increased timeout for reliability
+    VALIDATE_CERTS=True
 )
 
 async def send_verification_email(email: EmailStr, code: str):
