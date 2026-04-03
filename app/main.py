@@ -1,44 +1,86 @@
+import os
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.core.database import engine, Base
+from contextlib import asynccontextmanager
 
-# Import Models
-from app.models.user import User
-from app.models.billing import Subscription
-from app.models.transactions import Transaction
-from app.models.audit import AuditLog 
+# 🚨 Database & Models
+from app.db.session import engine
+from app.domains.users.models import Base, User, SiteSettings
+from app.domains.wallet.models import Wallet, PaymentMethod
+from app.domains.chat.models import ChatMessage, SupportTicket
 
-# Import Routers
-from app.api.endpoints import auth, user, billing, transactions, dashboard, ingest
+# ---> ROUTERS <---
+from app.domains.users.auth import router as auth_router
+from app.domains.users.router import router as users_router
+from app.domains.admin.router import router as admin_router
+from app.domains.wallet.router import router as wallet_router
+from app.domains.trade.router import router as trade_router 
+from app.domains.chat.router import router as chat_router
 
-Base.metadata.create_all(bind=engine)
+# 1. Sentry Initialization
+def custom_traces_sampler(sampling_context):
+    asgi_scope = sampling_context.get("asgi_scope")
+    if asgi_scope and asgi_scope.get("path") == "/api/health":
+        return 0.0
+    return 0.1
 
-app = FastAPI(title=settings.PROJECT_NAME)
+sentry_sdk.init(
+    dsn=os.getenv("SENTRY_DSN", ""),
+    traces_sampler=custom_traces_sampler,
+    profiles_sample_rate=0.1,
+)
+
+# 2. Asynchronous Lifespan Management (Optimized for Cloud Boot)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("System Booting: Initializing secure connections...")
+    # Schema generation bypassed to prevent Render boot timeouts.
+    # Tables managed via Neon DB & Alembic migrations.
+    yield
+    print("System Shutting Down: Closing database pools...")
+
+# 3. FastAPI Initialization
+app = FastAPI(
+    title="Dunex Core Financial Engine",
+    description="Async API handling ledgers, trading execution, and real-time chat.",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# 4. Security: CORS Middleware (Production Hardened)
+# 🚨 Add your actual live domains here once you deploy the frontend!
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",        # Next.js Local
+    "http://localhost:8081",        # Expo Local Web
+    "https://admin.dunexmarkets.com", # Future Live Admin
+    "https://app.dunexmarkets.com" ,  # Future Live Web App
+    "https://www.dunexmarkets.com",   # Production with www
+    "https://dunexmarkets.com",       # Production root
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  
-        "https://ledger-guard-frontend.vercel.app"  
-    ], 
+    allow_origins=ALLOWED_ORIGINS, 
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
-# ---  CORRECT ROUTER REGISTRATION ---
 
-app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-app.include_router(user.router, prefix="/user", tags=["User Settings"])
-app.include_router(billing.router, prefix="/billing", tags=["Billing"]) 
+# 5. Keep-Alive / Health Endpoint
+@app.get("/api/health", tags=["System Observability"])
+async def health_check():
+    return {
+        "status": "operational", 
+        "environment": os.getenv("ENVIRONMENT", "development")
+    }
 
-# Transactions & Ingest
-app.include_router(transactions.router, prefix=settings.API_V1_STR, tags=["Transactions"]) 
-app.include_router(ingest.router, prefix=f"{settings.API_V1_STR}/ingest", tags=["Ingest"])
+# 6. Router Inclusions
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(users_router, prefix="/api/v1") 
+app.include_router(admin_router, prefix="/api/v1")
+app.include_router(wallet_router, prefix="/api/v1/wallet") 
+app.include_router(trade_router, prefix="/api/v1") 
+app.include_router(chat_router, prefix="/api/v1")
 
-#  DASHBOARD (Fixed: Moved under API V1 to match Frontend)
-app.include_router(dashboard.router, prefix=f"{settings.API_V1_STR}/dashboard", tags=["Dashboard"])
-
-@app.get("/")
-def health_check():
-    return {"status": "operational", "db": "connected"}
+# 🚨 Removed the local static file mounting! Cloudinary handles all media now.
